@@ -1,0 +1,148 @@
+-- Enable needed extensions
+create extension if not exists "uuid-ossp";
+create extension if not exists pgcrypto;  -- for gen_random_uuid()
+
+-- USERS: mirrors auth.users
+create table if not exists public.users (
+  id uuid primary key references auth.users(id) on delete cascade,
+  plan text not null default 'free',                -- 'free' | 'pro'
+  subscription_status text,                         -- 'active' | 'canceled' | 'past_due' | null
+  stripe_customer_id text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.users enable row level security;
+
+create policy "read own users row"
+on public.users for select
+to authenticated
+using (id = auth.uid());
+
+create policy "update own users row (limited)"
+on public.users for update
+to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
+-- Note: Your backend/n8n will use the SERVICE ROLE key and bypass RLS anyway.
+
+-- INFLUENCER: one per user (locked after creation)
+create table if not exists public.influencers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  name text not null,
+  bio text not null,
+  vibe text not null,
+  base_prompt text,
+  seed text,
+  initial_image_url text,
+  is_locked boolean not null default false,
+  created_at timestamptz not null default now(),
+  unique(user_id)  -- enforce one influencer per user
+);
+
+alter table public.influencers enable row level security;
+
+create policy "select own influencer"
+on public.influencers for select
+to authenticated
+using (user_id = auth.uid());
+
+create policy "insert own influencer"
+on public.influencers for insert
+to authenticated
+with check (user_id = auth.uid());
+
+create policy "update own influencer until locked"
+on public.influencers for update
+to authenticated
+using (user_id = auth.uid() and is_locked = false)
+with check (user_id = auth.uid());
+
+-- CHATS: exactly one chat tied to the influencer
+create table if not exists public.chats (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  influencer_id uuid not null references public.influencers(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique(user_id, influencer_id)
+);
+
+alter table public.chats enable row level security;
+
+create policy "select own chats"
+on public.chats for select
+to authenticated
+using (user_id = auth.uid());
+
+create policy "insert own chat"
+on public.chats for insert
+to authenticated
+with check (user_id = auth.uid());
+
+-- MESSAGES
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  chat_id uuid not null references public.chats(id) on delete cascade,
+  role text not null check (role in ('user','assistant','system')),
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.messages enable row level security;
+
+-- Users can read messages only for their chats
+create policy "select messages for own chats"
+on public.messages for select
+to authenticated
+using (exists(
+  select 1 from public.chats c
+  where c.id = messages.chat_id and c.user_id = auth.uid()
+));
+
+-- Users can insert messages only into their chats
+create policy "insert messages into own chats"
+on public.messages for insert
+to authenticated
+with check (exists(
+  select 1 from public.chats c
+  where c.id = messages.chat_id and c.user_id = auth.uid()
+));
+
+-- IMAGES
+create table if not exists public.images (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  influencer_id uuid not null references public.influencers(id) on delete cascade,
+  prompt_final text,
+  url text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.images enable row level security;
+
+create policy "select own images"
+on public.images for select
+to authenticated
+using (user_id = auth.uid());
+
+create policy "insert own images"
+on public.images for insert
+to authenticated
+with check (user_id = auth.uid());
+
+-- OPTIONAL: fast monthly usage view + RPC
+create or replace view public.images_this_month as
+select
+  user_id,
+  count(*)::int as count
+from public.images
+where created_at >= date_trunc('month', now())
+group by user_id;
+
+create or replace function public.monthly_image_count(u uuid)
+returns int language sql stable as $$
+  select coalesce(count(*),0)::int
+  from public.images
+  where user_id = u
+    and created_at >= date_trunc('month', now());
+$$;
