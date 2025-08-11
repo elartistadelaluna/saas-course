@@ -10,7 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = form.email.value.trim();
     const password = form.password.value;
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // This MUST be present so the Supabase request includes ?redirect_to=
+        emailRedirectTo: 'https://gptsweetheart.com/redirect'
+      }
+    });
+
     if (error) {
       alert(error.message);
       return;
