@@ -1,44 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Sign Up - GPT Sweetheart</title>
-<style>
-    body { font-family: sans-serif; background-color: #0d0d0d; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .container { background-color: #1a1a1a; padding: 2rem; border-radius: 8px; width: 300px; }
-    h1 { color: #ff2e88; text-align: center; }
-    input, button { width: 100%; padding: 0.5rem; margin: 0.5rem 0; border-radius: 4px; border: none; }
+  <meta charset="UTF-8" />
+  <title>Sign Up - GPT Sweetheart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; background-color: #0d0d0d; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .container { background-color: #1a1a1a; padding: 2rem; border-radius: 8px; width: 320px; box-sizing: border-box; }
+    h1 { color: #ff2e88; text-align: center; margin-top: 0; }
+    input, button { width: 100%; padding: 0.6rem; margin: 0.6rem 0; border-radius: 4px; border: none; box-sizing: border-box; }
     input { background-color: #2b2b2b; color: white; }
     button { background-color: #ff2e88; color: white; cursor: pointer; }
     button:hover { background-color: #e02677; }
     a { color: #ff2e88; text-decoration: none; }
-</style>
-<script src="https://unpkg.com/@supabase/supabase-js"></script>
-<script>
-const supabase = supabase.createClient("https://rdwwpjfwsoufgbpihykn.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkd3dwamZ3c291ZmdicGloeWtuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MzUyNTcsImV4cCI6MjA3MDQxMTI1N30.34g9cl9e3aep-iJEPkOgbkpHja07xRSv7QigfpyeiMI");
-
-async function signUp(e) {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-        alert(error.message);
-    } else {
-        alert("Check your email to confirm your account.");
-    }
-}
-</script>
+    p { text-align:center; margin-bottom: 0; }
+  </style>
+  <!-- prevent favicon 404 noise -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
 </head>
 <body>
-<div class="container">
+  <div class="container">
     <h1>Sign Up</h1>
-    <form onsubmit="signUp(event)">
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Sign Up</button>
+    <form id="sign-up-form">
+      <input type="email" name="email" id="email" placeholder="Email" required />
+      <input type="password" name="password" id="password" placeholder="Password" required />
+      <button type="submit">Sign Up</button>
     </form>
-    <p style="text-align:center;">Already have an account? <a href="/login">Login</a></p>
-</div>
+    <p>Already have an account? <a href="/login">Login</a></p>
+  </div>
+
+  <!-- ES module entry; imports shared client from /assets/js/auth.js -->
+  <script type="module" src="/assets/js/sign-up.js"></script>
 </body>
 </html>
