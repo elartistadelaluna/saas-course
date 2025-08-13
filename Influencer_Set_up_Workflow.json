@@ -1,0 +1,304 @@
+{
+  "name": "Influencer Set up Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dfe1efe8-872d-41f7-bc59-75b82982c261",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        20
+      ],
+      "id": "71b5b4cf-fa97-4080-b22a-6b6e96e47901",
+      "name": "Webhook",
+      "webhookId": "dfe1efe8-872d-41f7-bc59-75b82982c261"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=This is the bio of the Influencer:{{ $json.body.bio }}\nThis is her vibe:{{ $json.body.vibe }}\nThis is her name:{{ $json.body.name }}"
+            },
+            {
+              "content": "#Role: You are an expert for ai image creation of hyper realistic images with Flux 1.1 pro ultra.\n\n#Task: Your task is to write a perfect base prompt that can be used in the future to create more images of the same ai influencer model. The base prompt should contain all the important visual aspects of the AI Influencer such as (Hair style, Hair color, face, eye color, lips, body shape, \"vibe\" of the AI influencer)\n\n#Context: The base prompt you create will be used in the future to modify it slightly to always be able to recreate very similar images of the same AI Influencer.\n\n#Output example:\n\n{\n\"base_prompt\": \"A hyper realistic image of Daniela, a 20 year old french girl with brwon eyes and black hair, busty shape, shes very attractive and has a playful, sensual and flirty personality\"\n}\n\n#Important: \n-Do not include specific clothing into the base prompt as that is specified later by the user who uses the base prompt\n-Always output the same valid JSON and use always the exact same name for the key\n-Include all the important aspects that could define the look of the AI Influencer (also age and ethnicity of the AI Influencer)\n-Ignore details that are irrelevant to the AI Influencers look such as favorite food)\n-Always output valid JSON and dont use any markup or ´´´```signs",
+              "role": "system"
+            },
+            {
+              "content": "Always output the same valid JSON structure and always call the key the same:\n\n{\n\"base_prompt\": \"....\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        200,
+        20
+      ],
+      "id": "cad1fd48-cf4f-4045-aed7-9e8b93d17c5a",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "KgeLAvy9zAq5Z7df",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=This is the base prompt:{{ $json.message.content.base_prompt }}\nThis is the AI Influencers bio:{{ $('Webhook').item.json.body.bio }}\nThis is the AI Influencers vibe:{{ $('Webhook').item.json.body.vibe }}"
+            },
+            {
+              "content": "#Role: You are an expert for ai image creation of hyper realistic images with Flux 1.1 pro ultra.\n\n#Task: Your task is to write a perfect prompt of a first Image of an AI Influencer by using the base prompt provided. You do that by just adding some details, such as closing to the prompt. Keep all the details from the base prompt. Make sure that it is always a frontal portrait that covers head to waist. For the clothing, select anything that you think is suitable based on the AI Influencers bio and vibe.\n\n#Context: The prompt you create gets used to create the first image of a Platform that allows people to create their own AI Influencer. Because of that the first image has to be an absolute masterpiece that already stands out.\n\n#Output example:\n\n{\n\"first_image\": \"A hyper realistic image of Daniela, a 28-year-old French model from Paris with brown eyes and long, flowing black hair. She has a beautifully sculpted, busty shape and an attractive face that exudes sensuality. Her personality is playful, positive, and kind, capturing a sensual, playful, and flirty vibe, she's wearing a nice lace top covered by an open blazer, frontal portrait\"\n}\n\n#Important: \n-Ignore details that are irrelevant to the AI Influencers look such as favorite food)\n-Always output valid JSON and dont use any markup or ´´´```signs",
+              "role": "system"
+            },
+            {
+              "content": "Always output the same valid JSON structure and always call the key the same:\n\n{\n\"first_image\": \"....\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        580,
+        20
+      ],
+      "id": "6f7979fe-3c40-4c42-a138-a4cae3787abb",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "KgeLAvy9zAq5Z7df",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro-ultra/predictions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer r8_LmuHAbwBlpnrMWm3jkl6p0mzcb4t5JX12l8hk"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "wait"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": {\n    \"prompt\": \"{{ $json.message.content.first_image }}\",\n    \"aspect_ratio\": \"2:3\",\n    \"raw\": true,\n    \"output_format\": \"jpg\",\n    \"safety_tolerance\": 6\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1020,
+        20
+      ],
+      "id": "1591a24e-a702-4c6d-97e2-2ee462cef353",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.replicate.com/v1/predictions/{{ $json.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer r8_LmuHAbwBlpnrMWm3jkl6p0mzcb4t5JX12l8hk"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1240,
+        20
+      ],
+      "id": "0f7e17d7-aae1-40ef-8ba8-cbc34a2c8dcd",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Your only task is to extract the seed number mentioned in that log and output the number as valid JSON. Don't do anything else just output the plain number in the JSON format provided.\n\nThats the log that contains the seed number: {{ $json.logs }}\n\nOutput the seed number you find always in the following format and JSON structure:\n\n{\n\"seed\": 10109\n}"
+            },
+            {
+              "content": "Always output the exact same valid JSON structure:\n{\n\"seed\": ...\n}\n",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1460,
+        20
+      ],
+      "id": "94e73435-acda-4472-bdab-f355658e0fc7",
+      "name": "OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "KgeLAvy9zAq5Z7df",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook').item.json.body.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Callback-Secret",
+              "value": "={{ $('Webhook').item.json.body.callback_secret }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"influencer_id\": \"{{ $('Webhook').item.json.body.influencer_id }}\",\n  \"base_prompt\": \"{{ $('OpenAI').item.json.message.content.base_prompt }}\",\n  \"seed\": {{ $json.message.content.seed }},\n  \"image_url\": \"{{ $('HTTP Request').item.json.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1820,
+        20
+      ],
+      "id": "88c31359-06f8-4509-ba91-a43009f8aeb4",
+      "name": "HTTP Request2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "05c152d2-7947-4009-80b1-bb13f087c2c7",
+  "meta": {
+    "instanceId": "bee5e857c0a37c118fb1d8a4f8a5ce1f6065955096f6c5857dfc48ea07afafd8"
+  },
+  "id": "2kYTis6bLcryQDkR",
+  "tags": []
+}
