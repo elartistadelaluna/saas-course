@@ -175,9 +175,9 @@ function startChatPolling() {
 
 // After sending a user message we poll faster until an AI reply arrives
 async function waitForAssistantOnce() {
-  // Start "typing…" after 3s
+  // Start "typing…" after 1s
   if (typingTimer) clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => setTyping(true), 3000);
+  typingTimer = setTimeout(() => setTyping(true), 1000);
 
   let tries = 0;
   const maxTries = 30;           // ~60s
