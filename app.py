@@ -26,6 +26,7 @@ N8N_WORKFLOW_URL = os.environ["N8N_WORKFLOW_URL"]
 N8N_CALLBACK_SECRET = os.environ["N8N_CALLBACK_SECRET"]
 MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/var/www/gptsweetheart/media")
 N8N_IMAGE_WORKFLOW_URL = os.environ["N8N_IMAGE_WORKFLOW_URL"]
+N8N_CHAT_WEBHOOK_URL = os.environ.get("N8N_CHAT_WEBHOOK_URL") 
 
 stripe.api_key = STRIPE_SECRET_KEY
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -100,6 +101,81 @@ def trigger_n8n_image_create(payload: dict):
     headers = {"Content-Type": "application/json"}
     requests.post(N8N_IMAGE_WORKFLOW_URL, json=payload, headers=headers, timeout=60)
 
+def trigger_n8n_chat(payload: dict):
+    """Send chat payload to n8n which will call back with an AI reply."""
+    headers = {"Content-Type": "application/json"}
+    requests.post(N8N_CHAT_WEBHOOK_URL, json=payload, headers=headers, timeout=60)
+
+def _utc_iso(dt: datetime) -> str:
+    return dt.replace(microsecond=0).isoformat()
+
+def ensure_chat(user_id: str, influencer_id: str) -> dict:
+    """Return an existing chat row or create a new one."""
+    ch = supabase.table("chats").select("*") \
+        .eq("user_id", user_id).eq("influencer_id", influencer_id) \
+        .limit(1).execute().data
+    if ch:
+        return ch[0]
+    now_iso = _utc_iso(datetime.utcnow())
+    created = supabase.table("chats").insert({
+        "user_id": user_id,
+        "influencer_id": influencer_id,
+        "created_at": now_iso
+    }).execute().data[0]
+    return created
+
+def maybe_seed_first_ai_message(user_id: str, influencer_id: str, chat_id: str):
+    """
+    Proactive first AI message ~10s after influencer creation.
+    We do this lazily: when the client asks for chat, we check if:
+      - influencer is locked
+      - no messages exist for the chat
+      - influencer.created_at is at least 10s in the past
+    If so, we insert the opener from the AI.
+    """
+    # any message already?
+    msg_count = supabase.table("messages").select("id", count="exact") \
+        .eq("chat_id", chat_id).execute().count or 0
+    if msg_count and msg_count > 0:
+        return
+
+    inf = supabase.table("influencers").select("created_at") \
+        .eq("id", influencer_id).single().execute().data
+    if not inf or not inf.get("created_at"):
+        return
+
+    try:
+        created = datetime.fromisoformat(inf["created_at"].replace("Z", "+00:00"))
+    except Exception:
+        return
+
+    if (datetime.utcnow() - created).total_seconds() < 10:
+        return
+
+    # seed AI opener
+    opener = "Hi sweetheart, how are you today? Why don’t you tell me your name and how your day is going?;)"
+    supabase.table("messages").insert({
+        "chat_id": chat_id,
+        "role": "assistant",
+        "content": opener,
+        "created_at": _utc_iso(datetime.utcnow())
+    }).execute()
+
+def last_messages(chat_id: str, limit: int = 20) -> list[dict]:
+    rows = supabase.table("messages").select("id,role,content,created_at") \
+        .eq("chat_id", chat_id) \
+        .order("created_at", desc=True) \
+        .limit(limit).execute().data or []
+    # return oldest→newest for rendering
+    return list(reversed(rows))
+
+def today_user_message_count(chat_id: str) -> int:
+    # count only user's messages since UTC midnight
+    midnight = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    r = supabase.table("messages").select("id", count="exact") \
+        .eq("chat_id", chat_id).eq("role", "user") \
+        .gte("created_at", _utc_iso(midnight)).execute()
+    return int(r.count or 0)
 
 @app.get("/api/me")
 def me():
@@ -349,7 +425,11 @@ def finalize_influencer():
         "is_locked": True,
         "created_at": now_iso
     }).eq("id", influencer_id).execute()
-
+    try:
+        ensure_chat(user_id, influencer_id)
+    except Exception:
+        pass
+        
     # Record the initial image for history/preview, but mark as non-billable
     supabase.table("images").insert({
         "user_id": user_id,
@@ -486,6 +566,110 @@ def list_images():
         .order("created_at", desc=True).execute().data or []
 
     return jsonify({"images": rows})
+
+@app.get("/api/chat")
+def get_chat():
+    user = get_user_from_auth_header()
+    if not user:
+        return jsonify({"error": "unauthorized"}), 401
+
+    # need a locked influencer
+    inf = supabase.table("influencers").select("id,is_locked,name,bio,vibe") \
+        .eq("user_id", user.id).single().execute().data
+    if not inf or not inf.get("is_locked"):
+        return jsonify({"chat": None, "messages": [], "can_send": False, "daily_limit": 20, "sent_today": 0})
+
+    chat = ensure_chat(user.id, inf["id"])
+    # lazily seed opener ~10s after creation if empty
+    maybe_seed_first_ai_message(user.id, inf["id"], chat["id"])
+
+    msgs = last_messages(chat["id"], limit=20)
+    sent_today = today_user_message_count(chat["id"])
+    can_send = sent_today < 20
+
+    return jsonify({
+        "chat": {"id": chat["id"], "influencer_id": inf["id"]},
+        "influencer": {"name": inf.get("name"), "bio": inf.get("bio"), "vibe": inf.get("vibe")},
+        "messages": msgs,
+        "daily_limit": 20,
+        "sent_today": sent_today,
+        "can_send": can_send
+    })
+
+@app.post("/api/chat/message")
+def chat_send_message():
+    user = get_user_from_auth_header()
+    if not user:
+        return jsonify({"error": "unauthorized"}), 401
+
+    body = request.get_json(silent=True) or {}
+    content = (body.get("content") or "").strip()
+    if not content:
+        return jsonify({"error": "missing_content"}), 400
+
+    # must have locked influencer
+    inf = supabase.table("influencers").select("id,name,bio,vibe,is_locked") \
+        .eq("user_id", user.id).single().execute().data
+    if not inf or not inf.get("is_locked"):
+        return jsonify({"error": "no_locked_influencer"}), 400
+
+    chat = ensure_chat(user.id, inf["id"])
+
+    # soft limit (front-end enforces, but re-check to be safe)
+    if today_user_message_count(chat["id"]) >= 20:
+        return jsonify({"error": "daily_limit_reached"}), 429
+
+    # store the user's message
+    now_iso = _utc_iso(datetime.utcnow())
+    supabase.table("messages").insert({
+        "chat_id": chat["id"],
+        "role": "user",
+        "content": content,
+        "created_at": now_iso
+    }).execute()
+
+    # Prepare last 20 messages for n8n
+    msgs = last_messages(chat["id"], limit=20)
+
+    # trigger n8n to generate the assistant reply
+    callback_url = f"{FRONTEND_URL}/api/chat/finalize"
+    payload = {
+        "chat_id": chat["id"],
+        "user_id": user.id,
+        "influencer_id": inf["id"],
+        "influencer": {"name": inf.get("name"), "bio": inf.get("bio"), "vibe": inf.get("vibe")},
+        "messages": msgs,
+        "callback_url": callback_url,
+        "callback_secret": N8N_CALLBACK_SECRET
+    }
+    try:
+        trigger_n8n_chat(payload)
+    except Exception as e:
+        return jsonify({"error": f"n8n_unreachable: {e}"}), 502
+
+    return jsonify({"status": "queued"})
+
+@app.post("/api/chat/finalize")
+def chat_finalize():
+    secret = request.headers.get("X-Callback-Secret", "") or (request.json or {}).get("callback_secret", "")
+    if secret != N8N_CALLBACK_SECRET:
+        return jsonify({"error": "unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+    chat_id = data.get("chat_id")
+    reply = (data.get("reply") or "").strip()
+    if not chat_id or not reply:
+        return jsonify({"error": "missing_fields"}), 400
+
+    supabase.table("messages").insert({
+        "chat_id": chat_id,
+        "role": "assistant",
+        "content": reply,
+        "created_at": _utc_iso(datetime.utcnow())
+    }).execute()
+
+    return jsonify({"ok": True})
+
 
 # --- entrypoint --------------------------------------------------------------
 if __name__ == "__main__":
