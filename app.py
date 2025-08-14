@@ -573,15 +573,35 @@ def get_chat():
     if not user:
         return jsonify({"error": "unauthorized"}), 401
 
-    # need a locked influencer
+    # Need a locked influencer
     inf = supabase.table("influencers").select("id,is_locked,name,bio,vibe") \
         .eq("user_id", user.id).single().execute().data
     if not inf or not inf.get("is_locked"):
-        return jsonify({"chat": None, "messages": [], "can_send": False, "daily_limit": 20, "sent_today": 0})
+        return jsonify({
+            "chat": None,
+            "messages": [],
+            "can_send": False,
+            "daily_limit": 20,
+            "sent_today": 0
+        })
 
-    chat = ensure_chat(user.id, inf["id"])
-    # lazily seed opener ~10s after creation if empty
-    maybe_seed_first_ai_message(user.id, inf["id"], chat["id"])
+    # Ensure chat exists for this influencer
+    try:
+        chat = ensure_chat(user.id, inf["id"])
+    except Exception:
+        # If ensure_chat fails for any reason, create a basic chat record manually
+        supabase.table("chats").insert({
+            "user_id": user.id,
+            "influencer_id": inf["id"],
+            "created_at": datetime.utcnow().isoformat()
+        }).execute()
+        chat = ensure_chat(user.id, inf["id"])
+
+    # Lazily seed opener ~10s after creation if empty
+    try:
+        maybe_seed_first_ai_message(user.id, inf["id"], chat["id"])
+    except Exception:
+        pass  # Don't block chat load if seeding fails
 
     msgs = last_messages(chat["id"], limit=20)
     sent_today = today_user_message_count(chat["id"])
@@ -589,7 +609,11 @@ def get_chat():
 
     return jsonify({
         "chat": {"id": chat["id"], "influencer_id": inf["id"]},
-        "influencer": {"name": inf.get("name"), "bio": inf.get("bio"), "vibe": inf.get("vibe")},
+        "influencer": {
+            "name": inf.get("name"),
+            "bio": inf.get("bio"),
+            "vibe": inf.get("vibe")
+        },
         "messages": msgs,
         "daily_limit": 20,
         "sent_today": sent_today,
