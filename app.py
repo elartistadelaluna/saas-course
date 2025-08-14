@@ -4,7 +4,7 @@ import stripe
 import requests
 from pathlib import Path
 from urllib.parse import urlparse, unquote
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from supabase import create_client, Client
@@ -106,8 +106,28 @@ def trigger_n8n_chat(payload: dict):
     headers = {"Content-Type": "application/json"}
     requests.post(N8N_CHAT_WEBHOOK_URL, json=payload, headers=headers, timeout=60)
 
-def _utc_iso(dt: datetime) -> str:
-    return dt.replace(microsecond=0).isoformat()
+def _utc_now():
+    return datetime.now(timezone.utc)
+
+def _utc_iso(dt: datetime | None = None) -> str:
+    """UTC ISO8601 with offset, second precision."""
+    if dt is None:
+        dt = _utc_now()
+    return dt.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+
+def _parse_ts(value: str | None) -> datetime | None:
+    """Parse Postgres timestamptz/ISO into an aware UTC datetime."""
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt
+    except Exception:
+        return None
 
 def ensure_chat(user_id: str, influencer_id: str) -> dict:
     """Return an existing chat row or create a new one."""
@@ -116,49 +136,42 @@ def ensure_chat(user_id: str, influencer_id: str) -> dict:
         .limit(1).execute().data
     if ch:
         return ch[0]
-    now_iso = _utc_iso(datetime.utcnow())
     created = supabase.table("chats").insert({
         "user_id": user_id,
         "influencer_id": influencer_id,
-        "created_at": now_iso
+        "created_at": _utc_iso(),
     }).execute().data[0]
     return created
+
 
 def maybe_seed_first_ai_message(user_id: str, influencer_id: str, chat_id: str):
     """
     Proactive first AI message ~10s after influencer creation.
-    We do this lazily: when the client asks for chat, we check if:
-      - influencer is locked
-      - no messages exist for the chat
-      - influencer.created_at is at least 10s in the past
-    If so, we insert the opener from the AI.
+    Only if the chat has no messages yet.
     """
-    # any message already?
-    msg_count = supabase.table("messages").select("id", count="exact") \
-        .eq("chat_id", chat_id).execute().count or 0
-    if msg_count and msg_count > 0:
+    # already has messages?
+    m = supabase.table("messages").select("id", count="exact") \
+        .eq("chat_id", chat_id).execute()
+    if (m.count or 0) > 0:
         return
 
+    # use influencer.created_at, compare in UTC
     inf = supabase.table("influencers").select("created_at") \
-        .eq("id", influencer_id).single().execute().data
-    if not inf or not inf.get("created_at"):
+        .eq("id", influencer_id).limit(1).execute()
+    created_at = _parse_ts((inf.data or [{}])[0].get("created_at"))
+    if not created_at:
         return
 
-    try:
-        created = datetime.fromisoformat(inf["created_at"].replace("Z", "+00:00"))
-    except Exception:
+    if _utc_now() - created_at < timedelta(seconds=10):
         return
 
-    if (datetime.utcnow() - created).total_seconds() < 10:
-        return
-
-    # seed AI opener
-    opener = "Hi sweetheart, how are you today? Why don’t you tell me your name and how your day is going?;)"
+    opener = ("Hi sweetheart, how are you today? Why don’t you tell me your name "
+              "and how your day is going?;)")
     supabase.table("messages").insert({
         "chat_id": chat_id,
         "role": "assistant",
         "content": opener,
-        "created_at": _utc_iso(datetime.utcnow())
+        "created_at": _utc_iso()
     }).execute()
 
 def last_messages(chat_id: str, limit: int = 20) -> list[dict]:
@@ -170,11 +183,11 @@ def last_messages(chat_id: str, limit: int = 20) -> list[dict]:
     return list(reversed(rows))
 
 def today_user_message_count(chat_id: str) -> int:
-    # count only user's messages since UTC midnight
-    midnight = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    # count only user's messages since UTC midnight (aware)
+    midnight_utc = _utc_now().replace(hour=0, minute=0, second=0, microsecond=0)
     r = supabase.table("messages").select("id", count="exact") \
         .eq("chat_id", chat_id).eq("role", "user") \
-        .gte("created_at", _utc_iso(midnight)).execute()
+        .gte("created_at", _utc_iso(midnight_utc)).execute()
     return int(r.count or 0)
 
 @app.get("/api/me")
@@ -415,7 +428,7 @@ def finalize_influencer():
     except Exception as e:
         return jsonify({"error": f"image_download_failed: {e}"}), 500
 
-    now_iso = datetime.utcnow().isoformat()
+    now_iso = _utc_iso()
 
     # Update influencer (lock + store assets)
     supabase.table("influencers").update({
@@ -554,8 +567,9 @@ def list_images():
     if not user:
         return jsonify({"error": "unauthorized"}), 401
 
-    # get their influencer id
-    inf = supabase.table("influencers").select("id").eq("user_id", user.id).single().execute().data
+    # safely get influencer row without .single() raising on 0 rows
+    res = supabase.table("influencers").select("id").eq("user_id", user.id).limit(1).execute()
+    inf = (res.data or [None])[0]
     if not inf:
         return jsonify({"images": []})
 
@@ -566,6 +580,7 @@ def list_images():
         .order("created_at", desc=True).execute().data or []
 
     return jsonify({"images": rows})
+
 
 @app.get("/api/chat")
 def get_chat():
@@ -593,7 +608,7 @@ def get_chat():
         supabase.table("chats").insert({
             "user_id": user.id,
             "influencer_id": inf["id"],
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": _utc_iso()
         }).execute()
         chat = ensure_chat(user.id, inf["id"])
 
