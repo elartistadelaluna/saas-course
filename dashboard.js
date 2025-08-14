@@ -1,4 +1,5 @@
-console.log('dashboard.js v7 loaded');
+// /assets/js/dashboard.js
+console.log('dashboard.js v8 loaded');
 
 async function ensureToken() {
   const token = localStorage.getItem('access_token') || '';
@@ -11,11 +12,7 @@ async function api(path, opts = {}) {
   if (!token) throw new Error('Not authenticated (no token)');
   const res = await fetch(path, {
     ...opts,
-    headers: {
-      ...(opts.headers || {}),
-      Authorization: 'Bearer ' + token,
-      'Content-Type': 'application/json',
-    },
+    headers: { ...(opts.headers || {}), Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
@@ -27,21 +24,15 @@ async function api(path, opts = {}) {
 function show(el) { el && el.classList.remove('hidden'); }
 function hide(el) { el && el.classList.add('hidden'); }
 
-// Spinner helpers
-function showSpinner() {
-  const ov = document.getElementById('spinner-overlay');
-  if (ov) ov.classList.add('show');
-}
-function hideSpinner() {
-  const ov = document.getElementById('spinner-overlay');
-  if (ov) ov.classList.remove('show');
-}
+function showSpinner(){ document.getElementById('spinner-overlay')?.classList.add('show'); }
+function hideSpinner(){ document.getElementById('spinner-overlay')?.classList.remove('show'); }
 
 let cachedPlan = 'free';
 let cachedCredits = 0;
 let influencerLocked = false;
 let lastGalleryCount = 0;
 
+// --- account/influencer ------------------------------------------------------
 async function loadAccount() {
   const data = await api('/api/me');
   cachedPlan = data.plan ?? 'free';
@@ -61,7 +52,7 @@ async function renderInfluencer(state) {
 
   influencerLocked = !!(state && state.is_locked);
 
-  if (!state) { show(empty); hide(view); return; }
+  if (!state) { show(empty); hide(view); hide(document.getElementById('chat-section')); return; }
 
   hide(empty); show(view);
   nameEl.textContent = state.name || '';
@@ -69,8 +60,8 @@ async function renderInfluencer(state) {
 
   if (state.initial_image_url) {
     imgBox.innerHTML = `<img alt="sweetheart" src="${state.initial_image_url}">`;
-    const cs = document.getElementById('create-status');
-    if (cs) cs.textContent = ''; // clear any queued msg
+    document.getElementById('create-status').textContent = '';
+    show(document.getElementById('chat-section')); // show chat once available
   } else {
     imgBox.innerHTML = '';
     if (imgPlaceholder) imgBox.append(imgPlaceholder);
@@ -88,6 +79,7 @@ async function refreshCreateImageVisibility() {
   shouldShow ? show(section) : hide(section);
 }
 
+// --- gallery -----------------------------------------------------------------
 async function loadGallery() {
   const gSec = document.getElementById('gallery-section');
   const g = document.getElementById('gallery');
@@ -121,10 +113,6 @@ function attachGalleryClicks() {
 }
 
 let pollGen = null;
-/**
- * Poll account + gallery. If waitForGalleryIncrease=true,
- * hide spinner and stop when gallery count increases.
- */
 function startGenPolling(waitForGalleryIncrease = false) {
   if (pollGen) clearInterval(pollGen);
   const baseline = lastGalleryCount;
@@ -132,61 +120,131 @@ function startGenPolling(waitForGalleryIncrease = false) {
     await loadAccount();
     await loadGallery();
     await refreshCreateImageVisibility();
-
     if (waitForGalleryIncrease && lastGalleryCount > baseline) {
       hideSpinner();
-      clearInterval(pollGen);
-      pollGen = null;
-      return;
+      clearInterval(pollGen); pollGen = null;
     }
-
-    if (cachedCredits <= 0) {
-      clearInterval(pollGen);
-      pollGen = null;
-    }
+    if (cachedCredits <= 0) { clearInterval(pollGen); pollGen = null; }
   }, 5000);
 }
 
+// --- chat --------------------------------------------------------------------
+let chatId = null;
+let chatPoll = null;
+let typingTimer = null;
+
+function renderMessages(messages=[]) {
+  const body = document.getElementById('chat-body');
+  body.innerHTML = messages.map(m => {
+    const when = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    if (m.role === 'assistant') {
+      return `<div class="bubble ai"><span class="heart">❤</span>${m.content}<span class="meta">${when}</span></div>`;
+    } else {
+      return `<div class="bubble user">${m.content}<span class="meta">${when}</span></div>`;
+    }
+  }).join('');
+  body.scrollTop = body.scrollHeight;
+}
+
+function setTyping(on) {
+  const t = document.getElementById('typing');
+  on ? show(t) : hide(t);
+}
+
+async function loadChat() {
+  const res = await api('/api/chat');
+  if (!res.chat) { hide(document.getElementById('chat-section')); return; }
+  show(document.getElementById('chat-section'));
+  chatId = res.chat.id;
+  renderMessages(res.messages);
+
+  const sendBtn = document.getElementById('chat-send');
+  if (res.can_send) {
+    sendBtn.disabled = false;
+    show(sendBtn);
+  } else {
+    sendBtn.disabled = true;
+    hide(sendBtn);
+  }
+}
+
+function startChatPolling() {
+  if (chatPoll) clearInterval(chatPoll);
+  chatPoll = setInterval(loadChat, 5000);
+}
+
+// After sending a user message we poll faster until an AI reply arrives
+async function waitForAssistantOnce() {
+  // Start "typing…" after 3s
+  if (typingTimer) clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => setTyping(true), 3000);
+
+  let tries = 0;
+  const maxTries = 30;           // ~60s
+  let lastAssistantSeen = false;
+
+  // snapshot: if last message is assistant now
+  const initial = await api('/api/chat');
+  const baseline = (initial.messages || []).slice(-1)[0]?.role === 'assistant' ? (initial.messages || []).length : 0;
+
+  while (tries++ < maxTries) {
+    const res = await api('/api/chat');
+    const msgs = res.messages || [];
+    renderMessages(msgs);
+
+    const last = msgs[msgs.length - 1];
+    if (msgs.length > baseline && last && last.role === 'assistant') {
+      lastAssistantSeen = true;
+      break;
+    }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  setTyping(false);
+  if (!lastAssistantSeen) console.warn('Assistant reply wait timed out.');
+}
+
+// --- init --------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', async () => {
   const token = await ensureToken();
   if (!token) { window.location.href = '/login'; return; }
 
   await loadAccount();
 
-  // IMPORTANT: fetch & render influencer BEFORE the first gallery call
   const first = await fetchInfluencerOnce();
   await renderInfluencer(first);
   await refreshCreateImageVisibility();
-  await loadGallery(); // <- now safe (backend expects influencer)
+  await loadGallery();
+  if (influencerLocked) { await loadChat(); startChatPolling(); }
 
-  // If initial image is not there yet, poll until it appears, then hide spinner if shown
+  // keep polling influencer until image exists
   let pollInf = null;
   if (!first || !first.initial_image_url) {
     pollInf = setInterval(async () => {
       const inf = await fetchInfluencerOnce();
       await renderInfluencer(inf);
       if (inf && inf.is_locked && inf.initial_image_url) {
-        clearInterval(pollInf);
-        pollInf = null;
+        clearInterval(pollInf); pollInf = null;
         influencerLocked = true;
-        hideSpinner();                // stop spinner when initial image lands
+        hideSpinner();
         await refreshCreateImageVisibility();
         await loadGallery();
+        await loadChat();
+        startChatPolling();
       }
     }, 5000);
   }
 
+  // upgrade / billing
   document.getElementById('upgrade-btn')?.addEventListener('click', async () => {
     const data = await api('/api/upgrade', { method: 'POST' });
     if (data.url) window.location.href = data.url;
   });
-
   document.getElementById('billing-btn')?.addEventListener('click', async () => {
     const data = await api('/api/billing-portal', { method: 'POST' });
     if (data.url) window.location.href = data.url;
   });
 
-  // Create influencer (spinner until polling detects final image)
+  // create influencer
   const createBtn = document.getElementById('create-btn');
   const statusEl = document.getElementById('create-status');
   createBtn.addEventListener('click', async () => {
@@ -195,35 +253,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     const vibe = document.getElementById('vibe').value.trim();
     if (!name || !bio || !vibe) { alert('Fill all fields'); return; }
     createBtn.disabled = true;
-    if (statusEl) statusEl.textContent = ''; // prefer spinner over text
+    if (statusEl) statusEl.textContent = '';
     showSpinner();
     try {
       await api('/api/influencer', { method: 'POST', body: JSON.stringify({ name, bio, vibe }) });
       const shell = await fetchInfluencerOnce();
       await renderInfluencer(shell);
-      // spinner stays until pollInf sees the image and calls hideSpinner()
+      // spinner ends when pollInf detects final image
     } catch (e) {
-      alert(e.message);
-      hideSpinner();
-      if (statusEl) statusEl.textContent = '';
+      alert(e.message); hideSpinner();
     } finally { createBtn.disabled = false; }
   });
 
-  // Create additional images (spinner until gallery increases)
+  // create additional images
   const genBtn = document.getElementById('gen-btn');
   const genStatus = document.getElementById('gen-status');
   genBtn.addEventListener('click', async () => {
     const prompt = document.getElementById('user-prompt').value.trim();
     if (!prompt) { alert('Please enter a prompt'); return; }
     genBtn.disabled = true;
-    if (genStatus) genStatus.textContent = ''; // prefer spinner
+    if (genStatus) genStatus.textContent = '';
     showSpinner();
     try {
       await api('/api/images/create', { method: 'POST', body: JSON.stringify({ prompt }) });
-      startGenPolling(true); // wait for gallery to grow, then hide spinner
+      startGenPolling(true);
     } catch (e) {
-      alert(e.message);
-      hideSpinner();
+      alert(e.message); hideSpinner();
     } finally { genBtn.disabled = false; }
   });
+
+  // chat send
+  const sendBtn = document.getElementById('chat-send');
+  const input = document.getElementById('chat-input');
+  async function doSend() {
+    const text = (input.value || '').trim();
+    if (!text) return;
+    sendBtn.disabled = true;
+
+    // Optimistic append
+    const when = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    const body = document.getElementById('chat-body');
+    body.insertAdjacentHTML('beforeend', `<div class="bubble user">${text}<span class="meta">${when}</span></div>`);
+    body.scrollTop = body.scrollHeight;
+    input.value = '';
+
+    try {
+      await api('/api/chat/message', { method:'POST', body: JSON.stringify({ content: text }) });
+      // wait until assistant reply appears
+      await waitForAssistantOnce();
+      // refresh chat state (also re-applies daily-limit hiding)
+      await loadChat();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+  sendBtn.addEventListener('click', doSend);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSend(); });
 });
