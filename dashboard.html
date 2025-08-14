@@ -22,6 +22,18 @@
     .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; }
     .gallery img { width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:6px; display:block; cursor:pointer; }
 
+    /* Chat panel */
+    .chat-card { background:#111; border-radius:8px; padding:0; overflow:hidden; }
+    .chat-header { padding: 0.75rem 1rem; border-bottom:1px solid #222; display:flex; align-items:center; gap:.5rem; }
+    .chat-body { height: 360px; overflow-y:auto; padding: 1rem; background:#0b0b0b; }
+    .chat-footer { display:flex; gap:.5rem; padding: .75rem; border-top:1px solid #222; }
+    .bubble { max-width: 70%; padding:.6rem .8rem; border-radius: 14px; margin:.35rem 0; font-size: .95rem; line-height: 1.35; position: relative; }
+    .bubble.user { background:#262626; margin-left:auto; }
+    .bubble.ai { background:#1f1a1d; border:1px solid #ff2e8833; margin-right:auto; }
+    .bubble .meta { display:block; margin-top:.25rem; font-size:.75rem; color:#aaa; text-align:right; }
+    .ai .heart { position:absolute; top:-8px; left:-8px; font-size: 14px; color:#ff2e88; }
+    .typing { color:#ff2e88; font-size:.9rem; margin-top:.25rem; }
+
     /* Modal */
     #img-modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; flex-direction:column; z-index:1000; }
     #img-modal img { max-width:90%; max-height:80%; border-radius:8px; }
@@ -75,6 +87,19 @@
       </div>
     </div>
 
+    <!-- Chat (visible once influencer is locked) -->
+    <div class="chat-card hidden" id="chat-section">
+      <div class="chat-header">
+        <strong>Chat with me…</strong>
+        <span id="typing" class="typing hidden">Sweetheart is typing…</span>
+      </div>
+      <div id="chat-body" class="chat-body"></div>
+      <div class="chat-footer">
+        <input id="chat-input" placeholder="Write a message…" style="flex:1; padding:.6rem; border-radius:6px; border:1px solid #333; background:#0d0d0d; color:#fff;" />
+        <button id="chat-send">Send message</button>
+      </div>
+    </div>
+
     <!-- Create more images -->
     <div class="card hidden" id="create-image-section">
       <h3>How do you want to see me, sweetheart?</h3>
@@ -103,7 +128,6 @@
     <a id="download-btn" class="button" download>Download</a>
   </div>
 
-  <script type="module" src="/assets/js/dashboard.js?v=7"></script>
+  <script type="module" src="/assets/js/dashboard.js?v=8"></script>
 </body>
 </html>
-
