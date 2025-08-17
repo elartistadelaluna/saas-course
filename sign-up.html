@@ -4,9 +4,30 @@
   <meta charset="UTF-8" />
   <title>Sign Up - GPT Sweetheart</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Keep page-specific styles, but don't override site layout -->
   <style>
-    body { font-family: sans-serif; background-color: #0d0d0d; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .container { background-color: #1a1a1a; padding: 2rem; border-radius: 8px; width: 320px; box-sizing: border-box; }
+    /* Let site.css control overall layout (header/footer). */
+    body {
+      font-family: sans-serif;
+      background-color: #0d0d0d;
+      color: #fff;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Style ONLY the page's card container, not the header's .container */
+    body > .container {
+      background-color: #1a1a1a;
+      padding: 2rem;
+      border-radius: 8px;
+      width: 320px;
+      box-sizing: border-box;
+      margin: 64px auto; /* centers the card and leaves space under header */
+    }
+
     h1 { color: #ff2e88; text-align: center; margin-top: 0; }
     input, button { width: 100%; padding: 0.6rem; margin: 0.6rem 0; border-radius: 4px; border: none; box-sizing: border-box; }
     input { background-color: #2b2b2b; color: white; }
@@ -15,23 +36,29 @@
     a { color: #ff2e88; text-decoration: none; }
     p { text-align:center; margin-bottom: 0; }
   </style>
+
+  <!-- Use shared assets so header/footer match index -->
   <link rel="icon" href="/assets/img/favicon.png" type="image/png" sizes="any">
   <link rel="stylesheet" href="/assets/css/site.css" />
   <script defer src="/assets/js/site.js"></script>
 </head>
 <body>
-  <!-- Header (same as index) -->
+
+  <!-- Header (exactly like index) -->
   <header class="site-header">
     <div class="container header-inner">
       <a href="/" class="brand">
         <img src="/assets/img/logo.png" alt="GPT Sweetheart" />
       </a>
       <nav class="nav">
+        <a href="/prices">Prices</a>
+        <a href="/sign-up">Sign up</a>
         <a href="/login">Login</a>
       </nav>
     </div>
   </header>
 
+  <!-- Your original sign-up card (unchanged) -->
   <div class="container">
     <h1>Sign Up</h1>
     <form id="sign-up-form">
@@ -42,10 +69,9 @@
     <p>Already have an account? <a href="/login">Login</a></p>
   </div>
 
-  <!-- ES module entry; imports shared client from /assets/js/auth.js -->
   <script type="module" src="/assets/js/sign-up.js"></script>
 
-  <!-- Footer (same as index) -->
+  <!-- Footer (exactly like index) -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <span class="muted">&copy; <span id="year"></span> GPT Sweetheart</span>
@@ -55,5 +81,6 @@
       </nav>
     </div>
   </footer>
+
 </body>
 </html>
