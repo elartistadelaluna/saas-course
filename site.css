@@ -25,18 +25,27 @@ a:hover{opacity:.9}
 
 /* Header */
 .site-header{
-  position:sticky;
-  top:0;
-  z-index:50;
-  background:rgba(13,13,13,.95);
-  backdrop-filter:saturate(120%) blur(4px);
-  border-bottom:1px solid #151515
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(13,13,13,.95);
+  backdrop-filter: saturate(120%) blur(4px);
+  border-bottom: 1px solid #151515;
 }
-.header-inner{height:64px;display:flex;align-items:center;justify-content:space-between}
-.brand img{height:28px;display:block}
-.nav{display:flex;gap:16px}
-.nav a{color:#ddd;padding:.35rem .5rem;border-radius:6px}
-.nav a:hover{background:#1d1d1d}
+
+/* Increase overall header height to fit the bigger logo */
+.header-inner{
+  height: 96px;                /* was 64px */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Make the logo ~3x (28px → 84px) */
+.brand img{
+  height: 84px;                /* was 28px */
+  display: block;
+}
 
 /* Footer */
 .site-footer{
@@ -74,8 +83,8 @@ a:hover{opacity:.9}
 .center{text-align:center}
 .spacer{height:20px}
 
-/* Responsive */
-@media (max-width:960px){
-  .grid-3{grid-template-columns:1fr}
-  .pricing{grid-template-columns:1fr}
+/* Keep things readable on small screens */
+@media (max-width: 640px){
+  .header-inner{ height: 64px; }
+  .brand img{ height: 44px; }  /* scaled-down mobile size */
 }
