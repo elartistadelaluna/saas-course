@@ -48,7 +48,7 @@ a:hover{opacity:.9}
 }
 
 /* Nav links (shared for header & footer) */
-.nav{display:flex; gap:32px}     /* increased spacing */
+.nav{display:flex; gap:24px}     /* increased spacing */
 .nav a{color:#ddd; padding:.35rem .5rem; border-radius:6px}
 .nav a:hover{background:#1d1d1d}
 
