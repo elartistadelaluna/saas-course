@@ -1,32 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Login - GPT Sweetheart</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: sans-serif; background-color: #0d0d0d; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .container { background-color: #1a1a1a; padding: 2rem; border-radius: 8px; width: 320px; box-sizing: border-box; }
-    h1 { color: #ff2e88; text-align: center; margin: 0 0 1rem; }
-    input, button { width: 100%; padding: 0.6rem; margin: 0.6rem 0; border: none; border-radius: 4px; box-sizing: border-box; }
-    input { background: #2b2b2b; color: #fff; }
-    button { background: #ff2e88; color: #fff; cursor: pointer; }
-    button:hover { background: #e02677; }
-    a { color: #ff2e88; text-decoration: none; }
-    p { text-align:center; margin:0; }
-  </style>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+  <meta charset="UTF-8">
+  <title>Terms – GPT Sweetheart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/assets/img/favicon.png" type="image/png" sizes="any">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <script defer src="/assets/js/site.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Login</h1>
-    <form id="login-form">
-      <input type="email" name="email" placeholder="Email" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-    </form>
-    <p>Need an account? <a href="/sign-up">Sign up</a></p>
-  </div>
-  <script type="module" src="/assets/js/login.js"></script>
+  <!-- Header (landing-style links) -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand"><img src="/assets/img/logo.png" alt="GPT Sweetheart"></a>
+      <nav class="nav">
+        <a href="/prices">Prices</a>
+        <a href="/sign-up">Sign up</a>
+        <a href="/login">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>OUR TERMS</h1>
+    </section>
+    <section class="card">
+      <p class="muted">[Placeholder text] Add your terms of service here. You can style with simple headings and paragraphs within this card to keep it readable on dark background.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span class="muted">&copy; <span id="year"></span> GPT Sweetheart</span>
+      <nav class="nav">
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+      </nav>
+    </div>
+  </footer>
 </body>
 </html>
