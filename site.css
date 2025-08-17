@@ -16,7 +16,13 @@ html,body{
 }
 a{color:#fff;text-decoration:none}
 a:hover{opacity:.9}
+
+/* Default centered container */
 .container{max-width:1120px;margin:0 auto;padding:0 16px}
+
+/* Stretch header/footer edge to edge */
+.site-header .container,
+.site-footer .container{max-width:100%}
 
 /* Buttons (match dashboard) */
 .btn{display:inline-block;background:var(--pink);color:#fff;border:none;border-radius:6px;
@@ -38,8 +44,13 @@ a:hover{opacity:.9}
   height: 96px;                /* was 64px */
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* logo left, links right */
 }
+
+/* Nav links (shared for header & footer) */
+.nav{display:flex; gap:32px}     /* increased spacing */
+.nav a{color:#ddd; padding:.35rem .5rem; border-radius:6px}
+.nav a:hover{background:#1d1d1d}
 
 /* Make the logo ~3x (28px → 84px) */
 .brand img{
@@ -87,4 +98,5 @@ a:hover{opacity:.9}
 @media (max-width: 640px){
   .header-inner{ height: 64px; }
   .brand img{ height: 44px; }  /* scaled-down mobile size */
+  .nav{ gap:16px }              /* tighter spacing on small screens */
 }
