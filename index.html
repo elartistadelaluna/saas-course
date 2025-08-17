@@ -77,40 +77,47 @@
 </main>
 
     <!-- Feature cards -->
+    <style>
+      :root {
+        --brand-pink: #ff007f; /* your typical pink */
+      }
 
-<style>
-  :root {
-    --brand-pink: #ff007f; /* your typical pink */
-  }
+      .card h3 {
+        color: var(--brand-pink);
+      }
 
-  .card h3 {
-    color: var(--brand-pink);
-  }
-</style>
+      /* Match cards width to video/container */
+      .features-wrapper {
+        max-width: 960px;  /* same as your video area */
+        margin: 0 auto;
+      }
+    </style>
 
-    <section class="grid grid-3">
-      <article class="card">
-        <img src="/assets/img/box1.jpg" alt="Character creation">
-        <h3>CHARACTER CREATION</h3>
-        <p>Create your dream AI girl by giving her a name, a bio and of course selecting her look.</p>
-      </article>
-      <article class="card">
-        <img src="/assets/img/box2.jpg" alt="Spicy chatting">
-        <h3>SPICY CHATTING</h3>
-        <p>Chat with your girl about whatever you want.</p>
-      </article>
-      <article class="card">
-        <img src="/assets/img/box3.jpg" alt="Get images">
-        <h3>GET IMAGES</h3>
-        <p>See your dream girl however you want and get images.</p>
-      </article>
-    </section>
+    <div class="features-wrapper">
+      <section class="grid grid-3">
+        <article class="card">
+          <img src="/assets/img/box1.jpg" alt="Character creation">
+          <h3>CHARACTER CREATION</h3>
+          <p>Create your dream AI girl by giving her a name, a bio and of course selecting her look.</p>
+        </article>
+        <article class="card">
+          <img src="/assets/img/box2.jpg" alt="Spicy chatting">
+          <h3>SPICY CHATTING</h3>
+          <p>Chat with your girl about whatever you want.</p>
+        </article>
+        <article class="card">
+          <img src="/assets/img/box3.jpg" alt="Get images">
+          <h3>GET IMAGES</h3>
+          <p>See your dream girl however you want and get images.</p>
+        </article>
+      </section>
+    </div>
 
     <div class="spacer"></div>
     <div class="center">
       <a class="btn" href="/sign-up">Create your Sweetheart now</a>
     </div>
-  </main>
+
 
   <!-- Footer -->
   <footer class="site-footer">
