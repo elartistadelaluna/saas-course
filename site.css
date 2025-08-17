@@ -1,1 +1,81 @@
-OK
+:root{
+  --pink:#ff2e88; --bg:#0d0d0d; --card:#1a1a1a; --muted:#bbb; --border:#333;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:#fff;
+  font-family:sans-serif;
+
+  /* Make footer stick to bottom */
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+a{color:#fff;text-decoration:none}
+a:hover{opacity:.9}
+.container{max-width:1120px;margin:0 auto;padding:0 16px}
+
+/* Buttons (match dashboard) */
+.btn{display:inline-block;background:var(--pink);color:#fff;border:none;border-radius:6px;
+     padding:.7rem 1.1rem;cursor:pointer}
+.btn:hover{background:#e02677}
+
+/* Header */
+.site-header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(13,13,13,.95);
+  backdrop-filter:saturate(120%) blur(4px);
+  border-bottom:1px solid #151515
+}
+.header-inner{height:64px;display:flex;align-items:center;justify-content:space-between}
+.brand img{height:28px;display:block}
+.nav{display:flex;gap:16px}
+.nav a{color:#ddd;padding:.35rem .5rem;border-radius:6px}
+.nav a:hover{background:#1d1d1d}
+
+/* Footer */
+.site-footer{
+  margin-top:auto; /* pushes footer to bottom */
+  border-top:1px solid #151515;
+  background:#0a0a0a
+}
+.footer-inner{height:64px;display:flex;align-items:center;justify-content:space-between}
+.muted{color:var(--muted)}
+
+/* Common sections */
+.hero{padding:56px 0 28px}
+.hero h1{margin:0 0 10px;color:var(--pink);font-size:2rem;text-align:center}
+.hero p{margin:0 0 18px;color:#ddd;text-align:center}
+.hero .cta{display:flex;justify-content:center;margin:10px 0 24px}
+.hero video{width:100%;max-width:540px;display:block;margin:0 auto;border:1px solid #222;border-radius:10px;background:#000}
+
+/* Feature cards */
+.grid{display:grid;gap:16px}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.card{background:var(--card);border-radius:10px;padding:16px;border:1px solid #1f1f1f}
+.card img{width:100%;border-radius:8px;margin-bottom:10px;display:block;object-fit:cover}
+.card h3{margin:0 0 6px;font-size:1.05rem}
+.card p{margin:0;color:#ddd;line-height:1.4}
+
+/* Pricing */
+.pricing{display:grid;gap:16px}
+.pricing .plan{padding:18px}
+.plan h3{margin:0 0 8px}
+.plan .price{font-size:1.8rem;margin:6px 0 12px;color:#fff}
+.plan ul{list-style:none;margin:0;padding:0;color:#ddd}
+.plan li{margin:.35rem 0}
+
+/* Utilities */
+.center{text-align:center}
+.spacer{height:20px}
+
+/* Responsive */
+@media (max-width:960px){
+  .grid-3{grid-template-columns:1fr}
+  .pricing{grid-template-columns:1fr}
+}
