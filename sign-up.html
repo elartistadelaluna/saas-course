@@ -15,18 +15,23 @@
     a { color: #ff2e88; text-decoration: none; }
     p { text-align:center; margin-bottom: 0; }
   </style>
-  <!-- prevent favicon 404 noise -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+  <link rel="icon" href="/assets/img/favicon.png" type="image/png" sizes="any">
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <script defer src="/assets/js/site.js"></script>
 </head>
 <body>
+  <!-- Header (same as index) -->
   <header class="site-header">
-  <div class="container header-inner">
-    <a href="/" class="brand">
-      <img src="/assets/img/logo.png" alt="GPT Sweetheart" />
-    </a>
-    <nav class="nav"></nav>
-  </div>
-</header>
+    <div class="container header-inner">
+      <a href="/" class="brand">
+        <img src="/assets/img/logo.png" alt="GPT Sweetheart" />
+      </a>
+      <nav class="nav">
+        <a href="/login">Login</a>
+      </nav>
+    </div>
+  </header>
+
   <div class="container">
     <h1>Sign Up</h1>
     <form id="sign-up-form">
@@ -39,14 +44,16 @@
 
   <!-- ES module entry; imports shared client from /assets/js/auth.js -->
   <script type="module" src="/assets/js/sign-up.js"></script>
+
+  <!-- Footer (same as index) -->
   <footer class="site-footer">
-  <div class="container footer-inner">
-    <span class="muted">&copy; <span id="year"></span> GPT Sweetheart</span>
-    <nav class="nav">
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-    </nav>
-  </div>
-</footer>
+    <div class="container footer-inner">
+      <span class="muted">&copy; <span id="year"></span> GPT Sweetheart</span>
+      <nav class="nav">
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+      </nav>
+    </div>
+  </footer>
 </body>
 </html>
