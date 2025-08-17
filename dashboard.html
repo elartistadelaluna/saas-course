@@ -112,8 +112,77 @@
   
   <h1>Dashboard</h1>
 
-  <div class="row">
-    <!-- ... existing dashboard content ... -->
+   <div class="row">
+    <div class="card">
+      <p>Current Plan: <span id="plan">...</span></p>
+      <p>Credits: <span id="credits">...</span></p>
+      <div class="center" style="margin-top:.5rem;">
+        <button id="upgrade-btn">Upgrade to Pro</button>
+        <button id="billing-btn" style="color:white;">Manage billing</button>
+      </div>
+    </div>
+
+    <!-- Influencer + Chat area -->
+    <div class="card" id="influencer-section">
+      <div id="influencer-empty">
+        <h3>Create your Sweetheart</h3>
+        <p class="muted">Set name, bio and vibe. We’ll generate a base prompt and an initial image.</p>
+        <label for="name">Name</label>
+        <input id="name" placeholder="e.g., Aurora" />
+        <label for="bio">Bio</label>
+        <textarea id="bio" placeholder="Short background story..."></textarea>
+        <label for="vibe">Vibe</label>
+        <input id="vibe" placeholder="e.g., playful, elegant, mysterious" />
+        <div style="margin-top: .75rem;">
+          <button id="create-btn">Create your Sweetheart now</button>
+          <span id="create-status" class="muted" style="margin-left:.5rem;"></span>
+        </div>
+      </div>
+
+      <div id="influencer-view" class="hidden">
+        <div class="influencer-grid">
+          <div>
+            <div class="img-wrap" id="preview-box">
+              <span class="muted" id="img-placeholder">Generating...</span>
+            </div>
+            <div class="inf-meta">
+              <div class="name" id="inf-name">Tiffi</div>
+              <div class="vibe" id="inf-vibe">Vibe: sensual, flirty</div>
+            </div>
+          </div>
+
+          <div class="chat-card hidden" id="chat-section">
+            <div class="chat-header">
+              <h3 style="margin:0;">Chat with me…</h3>
+              <span id="typing" class="typing hidden">Sweetheart is typing…</span>
+            </div>
+            <div id="chat-body" class="chat-body"></div>
+            <div class="chat-footer">
+              <button id="chat-send">Send message</button>
+              <input id="chat-input" placeholder="Write a message…" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create more images -->
+    <div class="card hidden" id="create-image-section">
+      <h3>How do you want to see me, sweetheart?</h3>
+      <div style="width:100%;">
+        <textarea id="user-prompt" placeholder="Describe the new image..."></textarea>
+      </div>
+      <div style="margin-top:.75rem; display:flex; align-items:center; gap:.5rem; width:100%;">
+        <button id="gen-btn">Create image</button>
+        <span id="gen-status" class="muted"></span>
+      </div>
+    </div>
+
+    <!-- Gallery -->
+    <div class="card hidden" id="gallery-section">
+      <h3>Gallery</h3>
+      <div id="gallery" class="gallery"></div>
+    </div>
   </div>
 
   <div id="spinner-overlay" aria-hidden="true">
