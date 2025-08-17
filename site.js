@@ -1,18 +1,31 @@
-import { supabase } from './auth.js';
+// Year in footer
+(function(){
+  const y = document.getElementById('year');
+  if (y) y.textContent = new Date().getFullYear();
+})();
 
-async function handleRedirect() {
+// Logout (for /dashboard header). Works whether you use Supabase client or just localStorage.
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('#logout-link');
+  if (!el) return;
+  e.preventDefault();
+
+  // Clear tokens in localStorage
   try {
-    // Exchange the code in the URL for a session
-    const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-    if (error) throw error;
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    Object.keys(localStorage).forEach(k=>{
+      if (k.toLowerCase().includes('supabase')) localStorage.removeItem(k);
+    });
+  } catch(_) {}
 
-    // ✅ Redirect to dashboard after login/signup
-    window.location.replace('/dashboard');
-  } catch (err) {
-    console.error('Error handling redirect:', err.message);
-    // Fallback: send to login page
-    window.location.replace('/login');
+  // Call Supabase client logout
+  try {
+    await supabase.auth.signOut();
+  } catch(err) {
+    console.error("Supabase signOut error", err);
   }
-}
 
-handleRedirect();
+  // Redirect to login
+  window.location.href = '/login';
+});
