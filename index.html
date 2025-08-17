@@ -7,6 +7,43 @@
   <link rel="icon" href="/assets/img/favicon.png" type="image/png" sizes="any">
   <link rel="stylesheet" href="/assets/css/site.css">
   <script defer src="/assets/js/site.js"></script>
+
+  <!-- Page-specific overrides: sizes & spacing only -->
+  <style>
+    :root { --hero-gap: 32px; } /* single spacing value used everywhere */
+
+    /* Desktop: bigger title/subtitle */
+    @media (min-width: 961px){
+      .hero h1{ font-size: 2.6rem; }      /* bigger than site.css (2rem) */
+      .hero p{ font-size: 1.25rem; }      /* bigger, still smaller than title */
+    }
+
+    /* Equal spacing between subtitle → video → CTA → cards */
+    .hero p{ margin: 0 0 var(--hero-gap); }
+    .hero video{
+      width: 100%;
+      max-width: 100%;                    /* video as wide as the 3-card grid (container width) */
+      display: block;
+      margin: 0 auto var(--hero-gap);     /* centered + equal gap below */
+    }
+    .hero .cta{ display:flex; justify-content:center; margin: 0 0 var(--hero-gap); }
+
+    /* Cards section starts right after CTA without extra margin of its own */
+    .grid{ margin-top: 0; margin-left:auto; margin-right:auto; }
+
+    /* Equal spacing between cards and bottom CTA */
+    .spacer{ height: var(--hero-gap); }
+
+    /* Bottom CTA centered and spaced equally from the footer */
+    .center{ text-align:center; margin: 0 0 var(--hero-gap); }
+
+    /* Mobile: stack cards and ensure video/cards are centered */
+    @media (max-width: 960px){
+      .grid-3{ grid-template-columns: 1fr; }   /* stack cards */
+      .grid{ justify-items: center; }          /* keep cards centered in grid cells */
+      .hero video{ margin-left:auto; margin-right:auto; } /* guard against right drift */
+    }
+  </style>
 </head>
 <body>
   <!-- Header -->
