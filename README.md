@@ -14,3 +14,14 @@
    - Copy any updated files into your own project.  
 
 ⚠️ Important: Always keep your personal API keys save and don't show them in a public place. Never commit or share your real keys. All the keys you see in the original repo are already deactivated and swapped out.
+
+
+
+## License
+
+This repository is for **educational purposes**.  
+- ✅ You can use and modify the code to build and launch your own SaaS.  
+- ❌ You cannot repackage or resell this material as your own course or training.  
+- ⚠️ No warranties – use at your own risk.  
+
+Full license terms are available in the [LICENSE](./LICENSE) file.
