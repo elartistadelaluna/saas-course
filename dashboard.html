@@ -8,83 +8,43 @@
   <link rel="stylesheet" href="/assets/css/site.css">
   <script defer src="/assets/js/site.js"></script>
 
-  <!-- Page-specific: make all vertical gaps identical; keep bigger title/subtitle -->
+  <!-- OVERRIDES to fix image cropping & video width -->
   <style>
-    :root { --hero-gap: 32px; } /* uniform spacing unit */
+    /* Video should span the same width as the 3-card grid (grid max-width = 1000px) */
+    .hero .video-container{ max-width:1000px !important; }
 
-    /* Keep the larger sizes you wanted */
+    /* Create a strict 2:3 vertical frame and keep the whole image visible */
+    .feature-card .card-image-wrapper{
+      aspect-ratio: 2 / 3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;            /* keeps rounded corners tidy */
+      border-radius:16px;
+      background:#0e0e0e;         /* subtle letterbox */
+    }
+    /* Override site.css (height:200px & object-fit:cover) */
+    .feature-card .card-image-wrapper img{
+      width:100% !important;
+      height:100% !important;
+      max-width:100% !important;
+      max-height:100% !important;
+      object-fit:contain !important;  /* show full image, no crop */
+      display:block;
+      border-radius:16px;
+      transform:none !important;      /* avoid hover scale crop */
+    }
+    .feature-card:hover img{ transform:none !important; }
+    .feature-card .card-image-overlay{ display:none !important; }
+
+    /* Keep desktop title/subtitle sizes you used before */
     @media (min-width: 961px){
       .hero h1{ font-size: 2.6rem; }
       .hero p{ font-size: 1.25rem; }
     }
 
-    /* Remove the extra 28px that was making CTA→cards look bigger */
-    .hero{ padding: 56px 0 0; } /* was 56px 0 28px in site.css */
-
-    /* Uniform spacing */
-    .hero p{ margin: 0 0 var(--hero-gap); }                  /* subtitle → video */
-
-    /* Video spans same width as 3 cards together */
-    .video-container{
-      width: 100%;
-      max-width: 960px;                                      /* shared width with features-wrapper */
-      margin: 0 auto var(--hero-gap);
-      position: relative;
-    }
-    .hero video{
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-    .video-glow{ pointer-events:none; }
-
-    .hero .cta{
-      display:flex; justify-content:center;
-      margin: 0 0 var(--hero-gap);                           /* first CTA → cards */
-    }
-
-    /* Cards wrapper matches video/container width */
-    .features-wrapper {
-      max-width: 960px;                                      /* same as hero video area */
-      margin: 0 auto;
-    }
-
-    /* Card image: force strict 2:3 vertical frame + fully visible image */
-    .card-image-wrapper {
-      aspect-ratio: 2 / 3;
-      width: 100%;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0e0e0e;                                   /* subtle letterbox background */
-      overflow: hidden;                                      /* keeps rounded corners tidy */
-    }
-    /* Strong override against any global image rules (e.g., cover) */
-    .feature-card .card-image-wrapper img{
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain !important;                        /* prevents cropping */
-      border-radius: 12px;
-    }
-    /* If there was a dark overlay in your theme, disable it to avoid visual “crop” feel */
-    .feature-card .card-image-overlay{ display: none; }
-
-    :root { --brand-pink: #ff007f; }
-    .card h3 { color: var(--brand-pink); }
-
-    /* Grid spacing */
-    .grid{ margin: 0 auto; }
-    .center{ text-align:center; margin: var(--hero-gap) 0 var(--hero-gap); }
-    .spacer{ height: 0; }
-
-    /* Mobile: stack cards, center them, and keep SAME gap between cards */
-    @media (max-width: 960px){
-      .grid-3{ grid-template-columns: 1fr; }
-      .grid{ justify-items: center; gap: var(--hero-gap); }   /* card1→2 and 2→3 */
-    }
+    /* Optional: center the features section itself like the video */
+    .features-wrapper{ max-width:1000px; margin:0 auto; }
   </style>
 </head>
 <body>
