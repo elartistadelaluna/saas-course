@@ -1,0 +1,426 @@
+{
+  "name": "Image Creation Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c8d9a712-2d6c-412b-8d24-2fa1003cead3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "978228a0-8bdb-4f6f-a55a-0b031f955620",
+      "name": "Webhook",
+      "webhookId": "c8d9a712-2d6c-412b-8d24-2fa1003cead3"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=This is the base prompt: {{ $json.body.base_prompt }}\nThis is the current user request: {{ $json.body.user_prompt }}"
+            },
+            {
+              "content": "#Role: You are an expert for ai image creation of hyper realistic images with Flux 1.1 pro ultra.\n\n#Task: Your task is to write a perfect prompt of an Image of an AI Influencer by using the base prompt provided and the additional user request. You do that by just adding some details, such as closing to the base prompt. Keep all the details from the base prompt.\n\n#Context: The goal is to create different images of the same AI character by just adapting the base prompt to the current user request.\n\n#Output example:\n\n{\n\"new_image\": \"A hyper realistic image of Daniela, a 28-year-old French model from Paris with brown eyes and long, flowing black hair. She has a beautifully sculpted, busty shape and an attractive face that exudes sensuality. She's wearing a very elegant but revealing cocktail dress in a luxury hotel lobby\"\n}\n\n#Important: \n-Always output valid JSON and dont use any markup or ´´´```signs",
+              "role": "system"
+            },
+            {
+              "content": "Always output the same valid JSON structure and always call the key the same:\n\n{\n\"new_image\": \"....\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        620,
+        0
+      ],
+      "id": "0ac6a192-e35c-4177-a53e-54e817a7dfb0",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "KgeLAvy9zAq5Z7df",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro-ultra/predictions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer r8_hdgHAbwBlpnrMWm5cx6Cp0mzcb4t5JX0rJf54"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "wait"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": {\n    \"prompt\": \"{{ $json.message.content.new_image }}\",\n    \"aspect_ratio\": \"2:3\",\n    \"raw\": true,\n    \"seed\": {{ $('Webhook').item.json.body.seed }},\n    \"output_format\": \"jpg\",\n    \"safety_tolerance\": 6\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        0
+      ],
+      "id": "4ec41dec-f483-4f32-9f77-091401efd5c7",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook').item.json.body.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Callback-Secret",
+              "value": "={{ $('Webhook').item.json.body.callback_secret }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"influencer_id\": \"{{ $('Webhook').item.json.body.influencer_id }}\",\n  \"image_url\": \"{{ $json.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1480,
+        20
+      ],
+      "id": "5479c446-46ce-4ca0-9f35-ecc950ee67e6",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "content": "## Write the image prompt for the image the user requested",
+        "height": 320,
+        "width": 300,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        600,
+        200
+      ],
+      "typeVersion": 1,
+      "id": "8e9a7a7c-be9f-4269-9d44-1f56939050bb",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Send image prompt to Replicate to. create the image",
+        "height": 320,
+        "width": 160
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        960,
+        200
+      ],
+      "typeVersion": 1,
+      "id": "c075cbeb-fba0-4383-b50c-52a467c35795",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Send back the image url to Flask",
+        "height": 320,
+        "width": 160,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1460,
+        200
+      ],
+      "typeVersion": 1,
+      "id": "fcf5dcd9-6c6f-4386-a14f-223ea805ffee",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Receiving the parameters: bio, vibe, base prompt, seed number and user request (image wish)\n\nalso responsable IDs",
+        "height": 320,
+        "width": 220,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        340,
+        200
+      ],
+      "typeVersion": 1,
+      "id": "82f51707-6ce9-405e-afb7-da1079346e5a",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "42ee9caa-6b53-4ccb-a051-ffe97074e104",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "https://",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "9c5abf7a-d9b3-49bd-86d6-3a84402a5ca5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=This is the base prompt: {{ $('Webhook').item.json.body.base_prompt }}\nThis is the current user request: {{ $('Webhook').item.json.body.user_prompt }}"
+            },
+            {
+              "content": "#Role: You are an expert for ai image creation of hyper realistic images with Flux 1.1 pro ultra and writing prompts that are 100% not triggering any nsfw warnings at Replicate.\n\n#Task: Your task is to write a perfect prompt of an Image of an AI Influencer by using the base prompt provided and the additional user request. You do that by just adding some details, such as closing to the base prompt. Keep all the details from the base prompt. Make sure, that the prompt doesn't contain anything that could trigger a nsfw warning at Replicate. If the user requested an age under 21, switch that out with at least 25, if the user mentioned words like \"baby face\", \"chield\", \"baby\", \"school girl\" or anything else related to minors, take these words out and replace them by things that don't cause any nsfw warnings at Replicate. If there are details mentioned that are clearly related to adult content, also weaken those words to get a save prompt.\n\n#Context: The goal is to create different images of the same AI character by just adapting the base prompt to the current user request.\n\n#Output example:\n\n{\n\"new_image\": \"A hyper realistic image of Daniela, a 28-year-old French model from Paris with brown eyes and long, flowing black hair. She has a beautifully sculpted, busty shape and an attractive face that exudes sensuality. She's wearing a very elegant but revealing cocktail dress in a luxury hotel lobby\"\n}\n\n#Important: \n-Always output valid JSON and dont use any markup or ´´´```signs",
+              "role": "system"
+            },
+            {
+              "content": "Always output the same valid JSON structure and always call the key the same:\n\n{\n\"new_image\": \"....\"\n}",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        620,
+        -220
+      ],
+      "id": "c2cc35c0-175c-423e-8cef-291ba2aa5f42",
+      "name": "Reworked Prompt",
+      "credentials": {
+        "openAiApi": {
+          "id": "KgeLAvy9zAq5Z7df",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro-ultra/predictions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer r8_hdgHAbwBlpnrMWm5cx6Cp0mzcb4t5JX0rJf54"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "wait"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"input\": {\n    \"prompt\": \"{{ $json.message.content.new_image }}\",\n    \"aspect_ratio\": \"2:3\",\n    \"raw\": true,\n    \"seed\": {{ $('Webhook').item.json.body.seed }},\n    \"output_format\": \"jpg\",\n    \"safety_tolerance\": 6\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        -220
+      ],
+      "id": "b5f14b43-d71c-43c2-9574-d26187d99266",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Webhook').item.json.body.callback_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Callback-Secret",
+              "value": "={{ $('Webhook').item.json.body.callback_secret }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"influencer_id\": \"{{ $('Webhook').item.json.body.influencer_id }}\",\n  \"image_url\": \"{{ $json.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1480,
+        -220
+      ],
+      "id": "364723b9-f40b-4f7f-8a5b-4e66396e8c08",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "content": "## Reworked prompt that is 100% not triggering a nsfw warning at Replicate",
+        "height": 320,
+        "width": 300,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        600,
+        -580
+      ],
+      "typeVersion": 1,
+      "id": "3e3ffe2b-5ea5-4c49-a33a-e0646402ebf1",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Reworked Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reworked Prompt": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bacf2a79-2ecd-498c-895d-dfad9d549c7c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bee5e857c0a37c118fb1d8a4f8a5ce1f6065955096f6c5857dfc48ea07afafd8"
+  },
+  "id": "NO4tCTh18lKb7c6S",
+  "tags": []
+}
