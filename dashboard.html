@@ -23,31 +23,67 @@
 
     /* Uniform spacing */
     .hero p{ margin: 0 0 var(--hero-gap); }                  /* subtitle → video */
+
+    /* Video spans same width as 3 cards together */
+    .video-container{
+      width: 100%;
+      max-width: 960px;                                      /* shared width with features-wrapper */
+      margin: 0 auto var(--hero-gap);
+      position: relative;
+    }
     .hero video{
       width: 100%;
-      max-width: 960px;                                      /* video spans same width as 3 cards */
+      height: auto;
       display: block;
-      margin: 0 auto var(--hero-gap);                        /* video → first CTA */
     }
+    .video-glow{ pointer-events:none; }
+
     .hero .cta{
       display:flex; justify-content:center;
       margin: 0 0 var(--hero-gap);                           /* first CTA → cards */
     }
 
-    /* Cards: no extra outer margin; bottom CTA controls spacing below */
+    /* Cards wrapper matches video/container width */
+    .features-wrapper {
+      max-width: 960px;                                      /* same as hero video area */
+      margin: 0 auto;
+    }
+
+    /* Card image: force strict 2:3 vertical frame + fully visible image */
+    .card-image-wrapper {
+      aspect-ratio: 2 / 3;
+      width: 100%;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0e0e0e;                                   /* subtle letterbox background */
+      overflow: hidden;                                      /* keeps rounded corners tidy */
+    }
+    /* Strong override against any global image rules (e.g., cover) */
+    .feature-card .card-image-wrapper img{
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;                        /* prevents cropping */
+      border-radius: 12px;
+    }
+    /* If there was a dark overlay in your theme, disable it to avoid visual “crop” feel */
+    .feature-card .card-image-overlay{ display: none; }
+
+    :root { --brand-pink: #ff007f; }
+    .card h3 { color: var(--brand-pink); }
+
+    /* Grid spacing */
     .grid{ margin: 0 auto; }
-
-    /* Bottom CTA spacing (cards → bottom CTA and bottom CTA → footer) */
     .center{ text-align:center; margin: var(--hero-gap) 0 var(--hero-gap); }
-
-    /* Neutralize the spacer so it doesn't add an extra gap */
     .spacer{ height: 0; }
 
     /* Mobile: stack cards, center them, and keep SAME gap between cards */
     @media (max-width: 960px){
       .grid-3{ grid-template-columns: 1fr; }
       .grid{ justify-items: center; gap: var(--hero-gap); }   /* card1→2 and 2→3 */
-      .hero video{ margin-left:auto; margin-right:auto; }     /* prevent right drift */
     }
   </style>
 </head>
@@ -66,101 +102,67 @@
 
   <!-- Hero -->
   <main class="container">
-  <section class="hero">
-    <h1 class="hero-title">CREATE YOUR GPT SWEETHEART IN SECONDS</h1>
-    <p class="hero-subtitle">Create your AI girl and chat with her!</p>
-    <div class="video-container">
-      <video src="/assets/video/welcome.mp4" controls playsinline preload="metadata" poster="/assets/img/thumbnail.jpg"></video>
-      <div class="video-glow"></div>
-    </div>
-    <div class="cta">
-      <a class="btn btn-hero" href="/sign-up">
-        <span class="btn-text">Sign up for free</span>
-        <div class="btn-shine"></div>
-      </a>
-    </div>
-  </section>
-</main>
+    <section class="hero">
+      <h1 class="hero-title">CREATE YOUR GPT SWEETHEART IN SECONDS</h1>
+      <p class="hero-subtitle">Create your AI girl and chat with her!</p>
+      <div class="video-container">
+        <video src="/assets/video/welcome.mp4" controls playsinline preload="metadata" poster="/assets/img/thumbnail.jpg"></video>
+        <div class="video-glow"></div>
+      </div>
+      <div class="cta">
+        <a class="btn btn-hero" href="/sign-up">
+          <span class="btn-text">Sign up for free</span>
+          <div class="btn-shine"></div>
+        </a>
+      </div>
+    </section>
+  </main>
 
-    <!-- Feature cards -->
-    <style>
-      :root {
-        --brand-pink: #ff007f; /* your typical pink */
-      }
+  <!-- Feature cards -->
+  <div class="features-wrapper">
+    <section class="grid grid-3">
+      <article class="card feature-card">
+        <div class="card-image-wrapper">
+          <img src="/assets/img/box1.jpg" alt="Character creation">
+          <div class="card-image-overlay"></div>
+        </div>
+        <div class="card-content">
+          <h3>CHARACTER CREATION</h3>
+          <p>Create your dream AI girl by giving her a name, a bio and of course selecting her look.</p>
+        </div>
+      </article>
 
-      .card h3 {
-        color: var(--brand-pink);
-      }
+      <article class="card feature-card">
+        <div class="card-image-wrapper">
+          <img src="/assets/img/box2.jpg" alt="Spicy chatting">
+          <div class="card-image-overlay"></div>
+        </div>
+        <div class="card-content">
+          <h3>SPICY CHATTING</h3>
+          <p>Chat with your girl about whatever you want.</p>
+        </div>
+      </article>
 
-      /* Match cards width to video/container */
-      .features-wrapper {
-        max-width: 960px;  /* same as your video area */
-        margin: 0 auto;
-      }
+      <article class="card feature-card">
+        <div class="card-image-wrapper">
+          <img src="/assets/img/box3.jpg" alt="Get images">
+          <div class="card-image-overlay"></div>
+        </div>
+        <div class="card-content">
+          <h3>GET IMAGES</h3>
+          <p>See your dream girl however you want and get images.</p>
+        </div>
+      </article>
+    </section>
+  </div>
 
-      /* Ensure card images maintain 2:3 aspect ratio and are fully visible */
-      .card-image-wrapper {
-        aspect-ratio: 2 / 3;
-        overflow: hidden;
-        border-radius: 12px;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .card-image-wrapper img {
-        width: 100%;
-        height: auto;
-        max-height: 100%;
-        object-fit: contain;
-        border-radius: 12px;
-      }
-    </style>
-
-    <div class="features-wrapper">
-      <section class="grid grid-3">
-        <article class="card feature-card">
-          <div class="card-image-wrapper">
-            <img src="/assets/img/box1.jpg" alt="Character creation">
-            <div class="card-image-overlay"></div>
-          </div>
-          <div class="card-content">
-            <h3>CHARACTER CREATION</h3>
-            <p>Create your dream AI girl by giving her a name, a bio and of course selecting her look.</p>
-          </div>
-        </article>
-        <article class="card feature-card">
-          <div class="card-image-wrapper">
-            <img src="/assets/img/box2.jpg" alt="Spicy chatting">
-            <div class="card-image-overlay"></div>
-          </div>
-          <div class="card-content">
-            <h3>SPICY CHATTING</h3>
-            <p>Chat with your girl about whatever you want.</p>
-          </div>
-        </article>
-        <article class="card feature-card">
-          <div class="card-image-wrapper">
-            <img src="/assets/img/box3.jpg" alt="Get images">
-            <div class="card-image-overlay"></div>
-          </div>
-          <div class="card-content">
-            <h3>GET IMAGES</h3>
-            <p>See your dream girl however you want and get images.</p>
-          </div>
-        </article>
-      </section>
-    </div>
-
-    <div class="spacer"></div>
-    <div class="center">
-      <a class="btn btn-secondary" href="/sign-up">
-        <span class="btn-text">Create your Sweetheart now</span>
-        <div class="btn-shine"></div>
-      </a>
-    </div>
-
+  <div class="spacer"></div>
+  <div class="center">
+    <a class="btn btn-secondary" href="/sign-up">
+      <span class="btn-text">Create your Sweetheart now</span>
+      <div class="btn-shine"></div>
+    </a>
+  </div>
 
   <!-- Footer -->
   <footer class="site-footer">
