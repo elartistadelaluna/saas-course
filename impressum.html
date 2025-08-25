@@ -7,16 +7,119 @@
   <link rel="icon" href="/assets/img/favicon.png" type="image/png" sizes="any">
   <link rel="stylesheet" href="/assets/css/site.css">
   <script defer src="/assets/js/site.js"></script>
+
+  <!-- Page-specific styles for modern content layout -->
+  <style>
+    :root { --content-gap: 32px; }
+
+    .hero {
+      padding: 56px 0 var(--content-gap);
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      margin: 0 0 16px;
+      background: linear-gradient(135deg, #fff 0%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .muted {
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    .content-section {
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .content-section:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .disclaimer {
+      background: rgba(255, 165, 0, 0.1);
+      border-color: rgba(255, 165, 0, 0.3);
+    }
+
+    .content-section h2 {
+      color: var(--pink);
+      font-size: 1.4rem;
+      margin: 0 0 1rem;
+      font-weight: 600;
+    }
+
+    .content-section p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .content-section p:last-child {
+      margin-bottom: 0;
+    }
+
+    .content-section ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .content-section ul li {
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .content-section strong {
+      color: #fff;
+    }
+
+    .content-section a {
+      color: var(--pink);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .content-section a:hover {
+      color: #e02677;
+    }
+
+    @media (min-width: 960px) {
+      .hero h1 {
+        font-size: 2.6rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .content-section {
+        margin: 0 1rem 2rem;
+        padding: 1.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- Header (landing-style links) -->
+  <!-- Header -->
   <header class="site-header">
     <div class="container header-inner">
       <a href="/" class="brand"><img src="/assets/img/logo.png" alt="GPT Sweetheart"></a>
       <nav class="nav">
-        <a href="/prices">Prices</a>
-        <a href="/sign-up">Sign up</a>
-        <a href="/login">Login</a>
+        <a href="/prices" class="nav-link">Prices</a>
+        <a href="/sign-up" class="nav-link nav-link-cta">Sign up</a>
+        <a href="/login" class="nav-link">Login</a>
       </nav>
     </div>
   </header>
@@ -28,8 +131,8 @@
     </section>
 
     <!-- Course Disclaimer -->
-    <section class="card">
-      <div class="muted" style="padding: .5rem 0;">
+    <section class="content-section disclaimer">
+      <div class="muted">
         <strong>Legal Disclaimer (for Course Demonstration)</strong><br>
         The following text is provided solely for demonstration within a video course by
         <strong>Dominik Felber</strong> (also known as <strong>Germanaicreator</strong> and operating under
@@ -38,7 +141,7 @@
       </div>
     </section>
 
-    <section class="card">
+    <section class="content-section">
       <h2>Angaben gemäß § 5 TMG</h2>
       <p><strong>Limitless AI Solutions LLC</strong><br>
          30 N Gould St Ste R<br>
@@ -75,9 +178,9 @@
     <div class="container footer-inner">
       <span class="muted">&copy; <span id="year"></span> GPT Sweetheart</span>
       <nav class="nav">
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/impressum">Impressum</a>
+        <a href="/terms" class="footer-link">Terms</a>
+        <a href="/privacy" class="footer-link">Privacy</a>
+        <a href="/impressum" class="footer-link">Impressum</a>
       </nav>
     </div>
   </footer>
