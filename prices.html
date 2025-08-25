@@ -8,68 +8,206 @@
   <link rel="stylesheet" href="/assets/css/site.css">
   <script defer src="/assets/js/site.js"></script>
 
-  <!-- Layout: stack on mobile, side-by-side on desktop (Free first) -->
-<style>
-  .pricing {
-    display: flex;              /* override grid from site.css */
-    flex-direction: column;     /* mobile: stacked */
-    gap: 2rem;                  /* spacing between boxes */
-    margin-bottom: 2rem;        /* extra space before footer on mobile */
-  }
-  @media (min-width: 960px) {
+  <!-- Page-specific styles for modern pricing cards -->
+  <style>
+    :root { --pricing-gap: 32px; }
+
+    .hero {
+      padding: 56px 0 var(--pricing-gap);
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2.4rem;
+      margin: 0 0 16px;
+      background: linear-gradient(135deg, #fff 0%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0;
+    }
+
     .pricing {
-      flex-direction: row;      /* desktop: side-by-side */
-      justify-content: center;
+      display: flex;
+      flex-direction: column;
       gap: 2rem;
-      margin-bottom: 0;         /* reset so footer stays tight */
+      margin: 0 auto var(--pricing-gap);
+      max-width: 960px;
     }
+
     .pricing .plan {
-      flex: 1;
-      max-width: 420px;         /* keep nice readable width */
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
-  }
-</style>
+
+    .pricing .plan::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(135deg, var(--pink) 0%, #e02677 100%);
+    }
+
+    .pricing .plan:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(255, 0, 127, 0.2);
+      border-color: rgba(255, 0, 127, 0.3);
+    }
+
+    .pricing .plan h3 {
+      color: var(--pink);
+      font-size: 1.5rem;
+      margin: 0 0 1rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .pricing .plan .price {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 0 0 2rem;
+      color: #fff;
+    }
+
+    .pricing .plan ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 2rem;
+    }
+
+    .pricing .plan ul li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.9);
+      position: relative;
+      padding-left: 1.5rem;
+    }
+
+    .pricing .plan ul li:last-child {
+      border-bottom: none;
+    }
+
+    .pricing .plan ul li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--pink);
+      font-weight: bold;
+    }
+
+    .pricing .plan .btn {
+      width: 100%;
+      text-align: center;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, var(--pink) 0%, #e02677 100%);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      display: block;
+    }
+
+    .pricing .plan .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 0, 127, 0.4);
+    }
+
+    @media (min-width: 960px) {
+      .pricing {
+        flex-direction: row;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 0;
+      }
+      
+      .pricing .plan {
+        flex: 1;
+        max-width: 420px;
+      }
+
+      .hero h1 {
+        font-size: 2.6rem;
+      }
+
+      .hero p {
+        font-size: 1.25rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+      }
+
+      .pricing .plan {
+        margin: 0 1rem;
+      }
+
+      .pricing .plan .price {
+        font-size: 2rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- Header (prices variant) -->
+  <!-- Header -->
   <header class="site-header">
     <div class="container header-inner">
       <a href="/" class="brand"><img src="/assets/img/logo.png" alt="GPT Sweetheart"></a>
       <nav class="nav">
-        <a href="/sign-up">Sign up</a>
-        <a href="/login">Login</a>
+        <a href="/sign-up" class="nav-link nav-link-cta">Sign up</a>
+        <a href="/login" class="nav-link">Login</a>
       </nav>
     </div>
   </header>
 
   <main class="container">
     <section class="hero">
-      <h1>Choose your plan</h1>
+      <h1>Choose Your Plan</h1>
       <p>Start for free. Upgrade any time.</p>
     </section>
 
     <section class="pricing">
-      <div class="card plan">
+      <div class="plan">
         <h3>Free</h3>
         <div class="price">$0</div>
         <ul>
-          <li>-Create one character</li>
-          <li>-3 image generations</li>
-          <li>-Chatting (20 msgs/day)</li>
+          <li>Create one character</li>
+          <li>3 image generations</li>
+          <li>Chatting (20 msgs/day)</li>
         </ul>
-        <div class="spacer"></div>
         <a class="btn" href="/sign-up">Get started</a>
       </div>
 
-      <div class="card plan">
+      <div class="plan">
         <h3>Pro</h3>
         <div class="price">$20 / mo</div>
         <ul>
-          <li>-Create one character</li>
-          <li>-20 images / month*</li>
-          <li>-Chatting (20 msgs/day)</li>
+          <li>Create one character</li>
+          <li>20 images / month*</li>
+          <li>Chatting (20 msgs/day)</li>
         </ul>
-        <div class="spacer"></div>
         <a class="btn" href="/sign-up">Get started</a>
       </div>
     </section>
@@ -79,8 +217,8 @@
     <div class="container footer-inner">
       <span class="muted">&copy; <span id="year"></span> GPT Sweetheart</span>
       <nav class="nav">
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
+        <a href="/terms" class="footer-link">Terms</a>
+        <a href="/privacy" class="footer-link">Privacy</a>
       </nav>
     </div>
   </footer>
