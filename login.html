@@ -8,35 +8,129 @@
   <link rel="stylesheet" href="/assets/css/site.css" />
   <script defer src="/assets/js/site.js"></script>
 
-  <!-- Page-specific styles only for the auth form -->
+  <!-- Page-specific styles for modern auth form -->
   <style>
-    .auth { padding: 56px 0; }
-    .auth h1 { margin: 0 0 12px; color: var(--pink); text-align: center; }
-    .auth-card { max-width: 420px; margin: 0 auto; }
-    .auth-card form { margin-top: 8px; }
-    .auth-card input,
+    :root { --auth-gap: 32px; }
+    
+    .auth { 
+      padding: 56px 0; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: calc(100vh - 200px);
+    }
+    
+    .auth-card { 
+      max-width: 420px; 
+      width: 100%;
+      margin: 0 auto;
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    .auth h1 { 
+      margin: 0 0 var(--auth-gap); 
+      color: var(--pink); 
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    
+    .auth-card form { 
+      margin-top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .auth-card input {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+    
+    .auth-card input:focus {
+      outline: none;
+      border-color: var(--pink);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 2px rgba(255, 0, 127, 0.2);
+    }
+    
+    .auth-card input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
     .auth-card button {
       width: 100%;
-      padding: 0.7rem;
-      margin: 0.5rem 0;
+      padding: 1rem;
+      margin: 1rem 0 0;
       border: none;
-      border-radius: 6px;
-      box-sizing: border-box;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--pink) 0%, #e02677 100%);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
-    .auth-card input { background: #2b2b2b; color: #fff; }
-    .auth-card button { background: var(--pink); color: #fff; cursor: pointer; }
-    .auth-card button:hover { background: #e02677; }
-    .auth-card p { text-align: center; margin: 0.5rem 0 0; }
-    .auth-card a { color: var(--pink); }
+    
+    .auth-card button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 0, 127, 0.3);
+    }
+    
+    .auth-card button:active {
+      transform: translateY(0);
+    }
+    
+    .auth-card p { 
+      text-align: center; 
+      margin: 1.5rem 0 0;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .auth-card a { 
+      color: var(--pink);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .auth-card a:hover {
+      color: #e02677;
+    }
+
+    @media (max-width: 640px) {
+      .auth-card {
+        margin: 0 1rem;
+        padding: 1.5rem;
+      }
+      
+      .auth h1 {
+        font-size: 1.75rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Header (same as index) -->
+  <!-- Header -->
   <header class="site-header">
     <div class="container header-inner">
       <a href="/" class="brand"><img src="/assets/img/logo.png" alt="GPT Sweetheart" /></a>
       <nav class="nav">
-        <a href="/sign-up">Sign up</a>
+        <a href="/prices" class="nav-link">Prices</a>
+        <a href="/sign-up" class="nav-link nav-link-cta">Sign up</a>
       </nav>
     </div>
   </header>
@@ -44,8 +138,8 @@
   <!-- Page content -->
   <main class="container">
     <section class="auth">
-      <div class="card auth-card">
-        <h1>Login</h1>
+      <div class="auth-card">
+        <h1>Welcome Back</h1>
         <form id="login-form">
           <input type="email" name="email" placeholder="Email" required />
           <input type="password" name="password" placeholder="Password" required />
@@ -56,13 +150,13 @@
     </section>
   </main>
 
-  <!-- Footer (same as index) -->
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <span class="muted">&copy; <span id="year"></span> GPT Sweetheart</span>
       <nav class="nav">
-        <a href="/terms">Terms</a>
-        <a href="/privacy">Privacy</a>
+        <a href="/terms" class="footer-link">Terms</a>
+        <a href="/privacy" class="footer-link">Privacy</a>
       </nav>
     </div>
   </footer>
